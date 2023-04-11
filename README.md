@@ -3,6 +3,9 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Support](https://img.shields.io/badge/support-Developer%20Forum-blue.svg)](https://devforum.okta.com/)
 
+> NOTICE: We're excited about the acquisition of Auth0 to bring you better support in PHP. This repo will be placed into security patch only mode and we will not be adding any further features. If you are looking for an API that is not supported in this library, please call the API directly. Our documentation for the supported Management APIs are located here: https://developer.okta.com/docs/reference/core-okta-api/. Please reach out to the [DevForum](https://devforum.okta.com/) for any questions.
+
+
 # Okta JWT Verifier for PHP
 
 As a result of a successful authentication by [obtaining an authorization grant from a user](https://developer.okta.com/docs/api/resources/oauth2.html#obtain-an-authorization-grant-from-a-user) or using the Okta API, you will be
@@ -10,6 +13,8 @@ provided with a signed JWT (`id_token` and/or `access_token`). A common use case
 inside of the Bearer authentication header to let your application know who the user is that is making the request. In
 order for you to know this use is valid, you will need to know how to validate the token against Okta. This guide gives
 you an example of how to do this using Okta's JWT Validation library for PHP.
+
+**This code does not work with the default authorization server. You must be using a [custom authorization server](https://github.com/okta/okta-jwt-verifier-php/issues/57). Please check if this is the case before using this code.**
 
 ## Release status
 
@@ -20,7 +25,7 @@ This library uses semantic versioning and follows Okta's [library version policy
 | 0.x     |  :warning: Beta Release (Retired)  |
 | 1.x     |  :heavy_check_mark: Release        |
 
-The latest release can always be found on the [releases page][github-releases].
+The latest release can always be found on the [releases page](https://github.com/okta/okta-jwt-verifier-php/releases).
 
 ## Installation
 The Okta JWT Verifier can be installed through composer.
@@ -30,11 +35,11 @@ composer require okta/jwt-verifier
 ```
 
 This library requires a JWT library. We currently support
-[firebase/php-jwt](https://packagist.org/packages/firebase/php-jwt). You will have to install this or create
+[firebase/php-jwt](https://packagist.org/packages/firebase/php-jwt) version 5.2. You will have to install this or create
 your own adaptor.
 
 ```bash
-composer require firebase/php-jwt
+composer require firebase/php-jwt ^5.2
 ```
 
 To create your own adaptor, just implement the `Okta/JwtVerifier/Adaptors/Adaptor` in your own class.
@@ -64,6 +69,19 @@ $jwtVerifier = (new \Okta\JwtVerifier\JwtVerifierBuilder())
     ->setIssuer('https://{yourOktaDomain}.com/oauth2/default')
     ->build();
 ```
+
+### Caching
+It's strongly suggested to cache the keys to improve performance. You can pass an implementation of `\Psr\SimpleCache\CacheInterface`
+to the Adaptor constructor.
+
+For example, in laravel:
+```php
+// note: named parameters are only valid for php >= 8.0
+->setAdaptor(new \Okta\JwtVerifier\Adaptors\FirebasePhpJwt(request: null, leeway: 120, cache: app('cache')->store()))
+```
+
+If using symphony, you may need to use an adaptor:
+https://symfony.com/doc/current/components/cache/psr6_psr16_adapters.html
 
 ## Validating an Access Token
 
@@ -125,7 +143,7 @@ dump($jwt->getIssuedAt(false)); // returns timestamp of issued at time
 
 dump($jwt->getExpirationTime()); //returns Carbon instance of Expiration Time
 dump($jwt->getExpirationTime(false)); //returns timestamp of Expiration Time
-
+```
 ## Need help?
 
 If you run into problems using the SDK, you can
