@@ -133,7 +133,7 @@ class FirebasePhpJwt implements Adaptor
     /**
      * Parse a JWK key
      * @param $source
-     * @return resource|array an associative array represents the key
+     * @return resource|array|Key an associative array represents the key
      */
     public static function parseKey($source)
     {
@@ -149,7 +149,11 @@ class FirebasePhpJwt implements Adaptor
 
                     $pem = self::createPemFromModulusAndExponent($source['n'], $source['e']);
                     $pKey = openssl_pkey_get_public($pem);
-                    if ($pKey !== false) {
+                    if ($pKey) {
+                        if ($pKey instanceof \OpenSSLAsymmetricKey) {
+                            $pKey = new Key($pKey, $source['alg']);
+                        }
+
                         return $pKey;
                     }
                     break;
